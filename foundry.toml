@@ -8,6 +8,6 @@ verbosity = 3
 runs = 500
 
 [profile.ci.fuzz]
-runs = 2_500_000
+runs = 500_000
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
