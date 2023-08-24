@@ -1,8 +1,11 @@
 # ERC20Helper
 
-![Foundry CI](https://github.com/makerdao/dss-conduits/actions/workflows/ci.yml/badge.svg)
+![Foundry CI](https://github.com/marsfoundation/erc20-helper/actions/workflows/ci.yml/badge.svg)
 [![Foundry][foundry-badge]][foundry]
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/makerdao/dss-conduits/blob/master/LICENSE)
+
+[foundry]: https://getfoundry.sh/
+[foundry-badge]: https://img.shields.io/badge/Built%20with-Foundry-FFDB1C.svg
 
 **DISCLAIMER: Please do not use in production without taking the appropriate steps to ensure maximum security.**
 
