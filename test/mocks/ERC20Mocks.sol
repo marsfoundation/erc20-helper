@@ -1,6 +1,31 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.7;
 
+contract ERC20ApproveSetToZero {
+
+    mapping(address => mapping(address => uint256)) public allowances;
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        require(
+            allowances[msg.sender][spender] == 0 || amount == 0,
+            "ERC20/approve-set-to-non-zero"
+        );
+        allowances[msg.sender][spender] = amount;
+        return true;
+    }
+}
+
+contract ERC20ApproveFailOnSetToAmount {
+
+    mapping(address => mapping(address => uint256)) public allowances;
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        require(amount == 0, "ERC20/approve-set-to-non-zero");
+        allowances[msg.sender][spender] = amount;
+        return true;
+    }
+}
+
 contract ERC20TrueReturner {
 
     function transfer(address, uint256) external pure returns (bool) {

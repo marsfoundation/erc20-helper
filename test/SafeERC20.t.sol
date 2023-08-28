@@ -3,29 +3,42 @@ pragma solidity ^0.8.7;
 
 import "../lib/forge-std/src/Test.sol";
 
-import { IERC20, SafeERC20 } from "../src/SafeERC20.sol";
+import { IERC20 } from "../src/interfaces/IERC20.sol";
+
+import { SafeERC20Wrapper } from "./harnesses/SafeERC20Wrapper.sol";
 
 import {
-    ERC20TrueReturner,
+    ERC20ApproveSetToZero,
+    ERC20ApproveFailOnSetToAmount,
     ERC20FalseReturner,
     ERC20NoReturner,
-    ERC20Reverter
+    ERC20Reverter,
+    ERC20TrueReturner
 } from "./mocks/ERC20Mocks.sol";
 
 contract ERC20HelperTest is Test {
 
-    using SafeERC20 for address;
-
+    address public approveAmountFail;
+    address public approveZero;
     address public falseReturner;
-    address public trueReturner;
     address public noReturner;
     address public reverter;
+    address public trueReturner;
+
+    // NOTE: This contract is necessary so that error messages can be parsed properly by
+    //       `vm.expectRevert()`. This isn't possible if `using` keyword is used in test. Plus,
+    //       this demonstrates more clearly how the library is used in practice.
+    SafeERC20Wrapper public wrapper;
 
     function setUp() public {
-        falseReturner = address(new ERC20FalseReturner());
-        trueReturner  = address(new ERC20TrueReturner());
-        noReturner    = address(new ERC20NoReturner());
-        reverter      = address(new ERC20Reverter());
+        approveAmountFail = address(new ERC20ApproveFailOnSetToAmount());
+        approveZero       = address(new ERC20ApproveSetToZero());
+        falseReturner     = address(new ERC20FalseReturner());
+        noReturner        = address(new ERC20NoReturner());
+        reverter          = address(new ERC20Reverter());
+        trueReturner      = address(new ERC20TrueReturner());
+
+        wrapper = new SafeERC20Wrapper();
     }
 
     /**********************************************************************************************/
@@ -33,26 +46,26 @@ contract ERC20HelperTest is Test {
     /**********************************************************************************************/
 
     function testFuzz_safeTransfer_trueReturner(address to, uint256 amount) public {
-        trueReturner.safeTransfer(to, amount);
+        wrapper.safeTransfer(trueReturner, to, amount);
     }
 
     function testFuzz_safeTransfer_noReturner(address to, uint256 amount) public {
-        noReturner.safeTransfer(to, amount);
+        wrapper.safeTransfer(noReturner, to, amount);
     }
 
     function testFuzz_safeTransfer_falseReturner(address to, uint256 amount) public {
         vm.expectRevert("SafeERC20/transfer-failed");
-        falseReturner.safeTransfer(to, amount);
+        wrapper.safeTransfer(falseReturner, to, amount);
     }
 
     function testFuzz_safeTransfer_reverter(address to, uint256 amount) public {
         vm.expectRevert("SafeERC20/transfer-failed");
-        reverter.safeTransfer(to, amount);
+        wrapper.safeTransfer(reverter, to, amount);
     }
 
     function testFuzz_safeTransfer_notContract(address to, uint256 amount) public {
         vm.expectRevert("SafeERC20/transfer-failed");
-        address(1).safeTransfer(to, amount);
+        wrapper.safeTransfer(address(1), to, amount);
     }
 
     /**********************************************************************************************/
@@ -62,30 +75,30 @@ contract ERC20HelperTest is Test {
     function testFuzz_safeTransferFrom_trueReturner(address from, address to, uint256 amount)
         public
     {
-        trueReturner.safeTransferFrom(from, to, amount);
+        wrapper.safeTransferFrom(trueReturner, from, to, amount);
     }
 
     function testFuzz_safeTransferFrom_noReturner(address from, address to, uint256 amount) public {
-        noReturner.safeTransferFrom(from, to, amount);
+        wrapper.safeTransferFrom(noReturner, from, to, amount);
     }
 
     function testFuzz_safeTransferFrom_falseReturner(address from, address to, uint256 amount)
         public
     {
         vm.expectRevert("SafeERC20/transfer-from-failed");
-        falseReturner.safeTransferFrom(from, to, amount);
+        wrapper.safeTransferFrom(falseReturner, from, to, amount);
     }
 
     function testFuzz_safeTransferFrom_reverter(address from, address to, uint256 amount) public {
         vm.expectRevert("SafeERC20/transfer-from-failed");
-        reverter.safeTransferFrom(from, to, amount);
+        wrapper.safeTransferFrom(reverter, from, to, amount);
     }
 
     function testFuzz_safeTransferFrom_notContract(address from, address to, uint256 amount)
         public
     {
         vm.expectRevert("SafeERC20/transfer-from-failed");
-        address(1).safeTransferFrom(from, to, amount);
+        wrapper.safeTransferFrom(address(1), from, to, amount);
     }
 
     /**********************************************************************************************/
@@ -93,33 +106,57 @@ contract ERC20HelperTest is Test {
     /**********************************************************************************************/
 
     function testFuzz_safeApprove_trueReturner(address to, uint256 amount) public {
-        trueReturner.safeApprove(to, amount);
+        wrapper.safeApprove(trueReturner, to, amount);
     }
 
     function testFuzz_safeApprove_noReturner(address to, uint256 amount) public {
-        noReturner.safeApprove(to, amount);
+        wrapper.safeApprove(noReturner, to, amount);
     }
 
     function testFuzz_safeApprove_falseReturner(address to, uint256 amount) public {
         vm.expectRevert("SafeERC20/approve-zero-failed");
-        falseReturner.safeApprove(to, amount);
+        wrapper.safeApprove(falseReturner, to, amount);
     }
 
     function testFuzz_safeApprove_reverter(address to, uint256 amount) public {
         vm.expectRevert("SafeERC20/approve-zero-failed");
-        reverter.safeApprove(to, amount);
+        wrapper.safeApprove(reverter, to, amount);
     }
 
     function testFuzz_safeApprove_notContract(address to, uint256 amount) public {
         vm.expectRevert("SafeERC20/approve-zero-failed");
-        address(1).safeApprove(to, amount);
+        wrapper.safeApprove(address(1), to, amount);
+    }
+
+    function testFuzz_safeApprove_approveAmountFailure(address to, uint256 amount) public {
+        vm.assume(amount != 0);
+
+        vm.expectRevert("SafeERC20/approve-amount-failed");
+        wrapper.safeApprove(approveAmountFail, to, amount);
+    }
+
+    function testFuzz_safeApprove_approveNonZero(address to, uint256 amount) public {
+        vm.assume(amount != 0);
+
+        // Show that direct interaction doesn't allow to set without setting to zero first.
+        ERC20ApproveSetToZero(approveZero).approve(to, amount);
+
+        vm.expectRevert("ERC20/approve-set-to-non-zero");
+        ERC20ApproveSetToZero(approveZero).approve(to, amount);
+
+        ERC20ApproveSetToZero(approveZero).approve(to, 0);
+
+        ERC20ApproveSetToZero(approveZero).approve(to, amount);
+
+        // Show that wrapper handles this case by making two approvals
+        wrapper.safeApprove(approveZero, to, amount);
+
+        wrapper.safeApprove(approveZero, to, amount);
     }
 
 }
 
 contract ERC20HelperMainnetTests is Test {
-
-    using SafeERC20 for address;
 
     address public constant USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     address public constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
@@ -128,85 +165,88 @@ contract ERC20HelperMainnetTests is Test {
 
     address[] public tokens = [USDT, USDC, DAI, WETH];
 
-    address public from   = makeAddr("from");
     address public to     = makeAddr("to");
-    address public caller = makeAddr("caller");
     uint256 public amount = 1000 ether;
+
+    // NOTE: These contracts are necessary so that error messages can be parsed properly by
+    //       `vm.expectRevert()`. This isn't possible if `using` keyword is used in test. Plus,
+    //       this demonstrates more clearly how the library is used in practice.
+    SafeERC20Wrapper public caller;
+    SafeERC20Wrapper public from;
 
     function setUp() external {
         vm.createSelectFork(getChain('mainnet').rpcUrl, 17_985_000);
+
+        caller = new SafeERC20Wrapper();
+        from   = new SafeERC20Wrapper();
     }
 
     function test_safeTransfer() public {
         for (uint256 i = 0; i < tokens.length; i++) {
-            deal(tokens[i], address(this), amount);
+            deal(tokens[i], address(from), amount);
 
             IERC20 token = IERC20(tokens[i]);
 
-            assertEq(token.balanceOf(address(this)), amount);
+            assertEq(token.balanceOf(address(from)), amount);
             assertEq(token.balanceOf(to),            0);
 
             vm.expectRevert("SafeERC20/transfer-failed");
-            tokens[i].safeTransfer(to, amount + 1);
+            from.safeTransfer(tokens[i], to, amount + 1);
 
-            tokens[i].safeTransfer(to, amount);
+            from.safeTransfer(tokens[i], to, amount);
 
-            assertEq(token.balanceOf(address(this)), 0);
+            assertEq(token.balanceOf(address(from)), 0);
             assertEq(token.balanceOf(to),            amount);
         }
     }
 
     function test_safeTransferFrom_balanceChecks() public {
         for (uint256 i = 0; i < tokens.length; i++) {
-            deal(tokens[i], from, amount);
+            deal(tokens[i], address(from), amount);
 
-            vm.startPrank(from);
-            tokens[i].safeApprove(caller, amount + 1);
-            vm.stopPrank();
+            from.safeApprove(tokens[i], address(caller), amount + 1);
 
             IERC20 token = IERC20(tokens[i]);
 
-            assertEq(token.allowance(from, caller), amount + 1);
-            assertEq(token.balanceOf(from), amount);
-            assertEq(token.balanceOf(to),   0);
+            assertEq(token.allowance(address(from), address(caller)), amount + 1);
 
-            vm.startPrank(caller);
+            assertEq(token.balanceOf(address(from)), amount);
+            assertEq(token.balanceOf(to),            0);
+
             vm.expectRevert("SafeERC20/transfer-from-failed");
-            tokens[i].safeTransferFrom(from, to, amount + 1);
+            caller.safeTransferFrom(tokens[i], address(from), to, amount + 1);
 
-            // tokens[i].safeTransferFrom(from, to, amount);
-            // vm.stopPrank();
+            caller.safeTransferFrom(tokens[i], address(from), to, amount);
 
-            // assertEq(token.allowance(from, caller), 1);
-            // assertEq(token.balanceOf(from), 0);
-            // assertEq(token.balanceOf(to),   amount);
+            assertEq(token.allowance(address(from), address(caller)), 1);
+
+            assertEq(token.balanceOf(address(from)), 0);
+            assertEq(token.balanceOf(to),            amount);
         }
     }
 
     function test_safeTransferFrom_approvalChecks() public {
         for (uint256 i = 0; i < tokens.length; i++) {
-            deal(tokens[i], from, amount + 1);
+            deal(tokens[i], address(from), amount + 1);
 
-            vm.startPrank(from);
-            tokens[i].safeApprove(caller, amount);
-            vm.stopPrank();
+            from.safeApprove(tokens[i], address(caller), amount);
 
             IERC20 token = IERC20(tokens[i]);
 
-            assertEq(token.allowance(from, caller), amount);
-            assertEq(token.balanceOf(from), amount + 1);
-            assertEq(token.balanceOf(to),   0);
+            assertEq(token.allowance(address(from), address(caller)), amount);
 
-            vm.startPrank(caller);
+            assertEq(token.balanceOf(address(from)), amount + 1);
+            assertEq(token.balanceOf(to),            0);
+
             vm.expectRevert("SafeERC20/transfer-from-failed");
-            tokens[i].safeTransferFrom(from, to, amount + 1);
+            caller.safeTransferFrom(tokens[i], address(from), to, amount + 1);
 
-            tokens[i].safeTransferFrom(from, to, amount);
-            vm.stopPrank();
+            caller.safeTransferFrom(tokens[i], address(from), to, amount);
 
-            assertEq(token.allowance(from, caller), 0);
-            assertEq(token.balanceOf(from), 1);
-            assertEq(token.balanceOf(to),   amount);
+            assertEq(token.allowance(address(from), address(caller)), 0);
+
+            assertEq(token.balanceOf(address(from)), 1);
+            assertEq(token.balanceOf(to),            amount);
         }
     }
 
@@ -214,11 +254,11 @@ contract ERC20HelperMainnetTests is Test {
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20 token = IERC20(tokens[i]);
 
-            assertEq(token.allowance(address(this), caller), 0);
+            assertEq(token.allowance(address(from), address(caller)), 0);
 
-            tokens[i].safeApprove(caller, amount);
+            from.safeApprove(tokens[i], address(caller), amount);
 
-            assertEq(token.allowance(address(this), caller), amount);
+            assertEq(token.allowance(address(from), address(caller)), amount);
         }
     }
 
