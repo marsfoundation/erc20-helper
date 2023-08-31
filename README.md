@@ -1,30 +1,24 @@
-# ERC20Helper
+# ERC20 Helpers
 
-![Foundry CI](https://github.com/marsfoundation/erc20-helper/actions/workflows/ci.yml/badge.svg)
+![Foundry CI](https://github.com/marsfoundation/erc20-helpers/actions/workflows/ci.yml/badge.svg)
 [![Foundry][foundry-badge]][foundry]
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/makerdao/dss-conduits/blob/master/LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/marsfoundation/erc20-helpers/blob/master/LICENSE)
 
 [foundry]: https://getfoundry.sh/
 [foundry-badge]: https://img.shields.io/badge/Built%20with-Foundry-FFDB1C.svg
 
-**DISCLAIMER: Please do not use in production without taking the appropriate steps to ensure maximum security.**
-
-**WARNING: Unlike other similar libraries, this  library does NOT REVERT ON FAILURES. Any contracts that inherit this code that expect the reversion to occur in this contract can have UNINTENDED AND POTENTIALLY CATASTROPHIC CONSEQUENCES.**
-
 ## Overview
 
-ERC20Helper is a basic library designed to be used as a middleware between general smart contracts and diverse ERC-20 tokens. It standardizes the behaviours of all commonly used implementations.
+ERC20Helpers is a repo with utilities for interacting with ERC20 tokens.
 
-The decision to intentionally not revert was so that this library can be more flexible for contracts that:
-- Want to choose their own revert strings, or none at all (i.e. `require(asset.safeRransfer(msg.sender, amount), "FOO:FAILED_TRANSFER");`).
-- Want to use the returns as booleans (i.e. `require(asset1.safeTransfer(msg.sender, amount) || asset2.safeTransfer(msg.sender, amount));`).
-- Do not care about the result of a transfer.
+- `SafeERC20` is a library that standardizes the behaviours of all commonly used implementations. It contains overriden functions so that both addresses and `IERC20` interfaces can be used.
+- `IERC20` is an interface for interacting with ERC20 tokens that contains permit functionality.
 
 ## Setup
 
 ```sh
-git clone git@github.com:maple-labs/erc20-helper.git
-cd erc20-helper
+git clone git@github.com:marsfoundation/erc20-helpers.git
+cd erc20-helpers
 forge install
 ```
 
@@ -35,10 +29,6 @@ To run the tests, do the following:
 ```
 forge test
 ```
-
-## Bug Bounty
-
-For all information related to the ongoing bug bounty for these contracts run by [Immunefi](https://immunefi.com/), please visit this [site](https://immunefi.com/bounty/maple/).
 
 ## Acknowledgements
 
