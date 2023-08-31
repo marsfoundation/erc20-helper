@@ -11,7 +11,8 @@
 
 ERC20Helpers is a repo with utilities for interacting with ERC20 tokens.
 
-- `SafeERC20` is a library that standardizes the behaviours of all commonly used implementations. It contains overriden functions so that both addresses and `IERC20` interfaces can be used.
+- `SafeERC20` is a library that standardizes the behaviors of all commonly used implementations. It contains overridden functions so that both addresses and `IERC20` interfaces can be used.
+- `MockERC20` is a contract that can be used in testing for a fully functional ERC20 token that has mint functionality.
 - `IERC20` is an interface for interacting with ERC20 tokens that contains permit functionality.
 
 ## Setup
